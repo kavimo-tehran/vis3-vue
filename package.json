@@ -1,5 +1,5 @@
 {
-  "name": "@kavimo/vis3-vue",
+  "name": "@kavimo-tehran/vis3-vue",
   "version": "1.0.2",
   "description": "Kavimo Vis3 Vue Component",
   "main": "src/index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kavimo/vis3-vue.git"
+    "url": "git+https://github.com/kavimo-tehran/vis3-vue.git"
   },
   "keywords": [
     "kavimo",
@@ -20,9 +20,9 @@
   "author": "Kavimo",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/kavimo/vis3-vue/issues"
+    "url": "https://github.com/kavimo-tehran/vis3-vue/issues"
   },
-  "homepage": "https://github.com/kavimo/vis3-vue#readme",
+  "homepage": "https://github.com/kavimo-tehran/vis3-vue#readme",
   "dependencies": {
     "vue": "^2.7.16"
   },

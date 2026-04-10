@@ -4,14 +4,14 @@ Kavimo Vis3 Vue Component
 
 # Installation:
 ```
-npm i @kavimo/vis3-vue
+npm i @kavimo-tehran/vis3-vue
 ```
 
 
 # Use in Vue App:
 ```
 <script setup>
-import Vis3 from '@kavimo/vis3-vue';
+import Vis3 from '@kavimo-tehran/vis3-vue';
 
 const handleLoad = ( media ) => {
     console.log('Vis: Media Loaded');
