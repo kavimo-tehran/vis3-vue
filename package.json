@@ -1,6 +1,6 @@
 {
   "name": "@kavimo-tehran/vis3-vue",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Kavimo Vis3 Vue Component",
   "main": "src/index.js",
   "scripts": {
