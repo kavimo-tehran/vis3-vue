@@ -4,7 +4,12 @@
   "description": "Kavimo Vis3 Vue Component",
   "main": "src/index.js",
   "scripts": {
-    "build": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib --name vis3-vue src/index.js"
+    "build": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib --name vis3-vue src/index.js",
+    "release": "npm version patch",
+    "release:minor": "npm version minor",
+    "release:major": "npm version major",
+    "version": "npm run build && git add dist",
+    "postversion": "npm publish && git push --follow-tags"
   },
   "repository": {
     "type": "git",
