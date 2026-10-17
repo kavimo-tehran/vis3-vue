@@ -119,58 +119,62 @@ if (typeof window !== 'undefined') {
 // Indicate to webpack that this file can be concatenated
 /* harmony default export */ var setPublicPath = (null);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"08e5ebd3-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??ref--5!./node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/vue-loader/lib??vue-loader-options!./src/Vis3.vue?vue&type=template&id=2e67def8
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"1b487b0a-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??ref--5!./node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/vue-loader/lib??vue-loader-options!./src/Vis3.vue?vue&type=template&id=0da60064
 var render = function render(){var _vm=this,_c=_vm._self._c;return _c('div',{attrs:{"id":_vm.containerID}})
 }
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/Vis3.vue?vue&type=template&id=2e67def8
+// CONCATENATED MODULE: ./src/Vis3.vue?vue&type=template&id=0da60064
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/vue-loader/lib??vue-loader-options!./src/Vis3.vue?vue&type=script&lang=js
 
-  /* harmony default export */ var Vis3vue_type_script_lang_js = ({
-    name: 'Vis3',
-    props: {
-      onLoad: Function,
-      domainName: String,
-      ID: String
-    },
-    data() {
-      return {
-        containerID: ''
-      }
-    },
-    created() {
-      // Generate a unique ID for the container
-      this.containerID = Math.random().toString(36).substring(2)
-  
-      // If a callback function is provided, set it on the window object
-      if (typeof this.onLoad === 'function') {
-        window[`vis_callback_${this.containerID}`] = this.onLoad
-      }
-  
-      // Create a script element and set its attributes
-      const script = document.createElement('script')
-      script.async = true
-      script.src = `https://${this.domainName || ''}/${this.ID || ''}/embed?container=${this.containerID}&callback=vis_callback_${this.containerID}`
-  
-      // Append the script to the document body
-      document.body.appendChild(script)
-  
-      // Cleanup function to remove the script element when the component unmounts or props change
-      this.cleanup = () => {
-        document.body.removeChild(script)
-        // Remove the callback function from the window object
-        if (typeof this.onLoad === 'function') {
-          delete window[`vis_callback_${this.containerID}`]
+/* harmony default export */ var Vis3vue_type_script_lang_js = ({
+  name: 'Vis3',
+  props: {
+    onLoad: Function,
+    domainName: String,
+    ID: String
+  },
+  data() {
+    return { containerID: '' }
+  },
+  mounted() {
+    // Set after mount, not in data(): under SSR the server's id would differ from the
+    // client's, hydration keeps the server one, and the embed would miss its div.
+    this.containerID = Math.random().toString(36).substring(2)
+    this.$nextTick(() => {
+      const callback = `vis_callback_${this.containerID}`
+      window[callback] = (result, vis) => {
+        if (this.cancelled) {
+          // Unmounted while the embed was still loading
+          delete window[callback]
+          return result.api.actions.Destroy && result.api.actions.Destroy()
         }
+        this.api = result.api
+        this.onLoad && this.onLoad(result, vis)
       }
-    },
-    beforeUnmount() {
-      this.cleanup()
+
+      this.script = document.createElement('script')
+      this.script.async = true
+      this.script.src = `https://${this.domainName || ''}/${this.ID || ''}/embed?container=${this.containerID}&callback=${callback}`
+      document.body.appendChild(this.script)
+    })
+  },
+  methods: {
+    unload() {
+      this.cancelled = true
+      this.script && this.script.remove()
+      if (!this.api) return
+      // Removing the script frees nothing: the player it built lives on in window.Vis
+      this.api.actions.Destroy && this.api.actions.Destroy()
+      delete window[`vis_callback_${this.containerID}`]
     }
-  });
+  },
+  // Vue 2 calls beforeDestroy, Vue 3 beforeUnmount
+  beforeDestroy() { this.unload() },
+  beforeUnmount() { this.unload() }
+});
 
 // CONCATENATED MODULE: ./src/Vis3.vue?vue&type=script&lang=js
  /* harmony default export */ var src_Vis3vue_type_script_lang_js = (Vis3vue_type_script_lang_js); 
