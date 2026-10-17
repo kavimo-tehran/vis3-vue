@@ -77,6 +77,11 @@ const handleLoad = (media) => {
     // Forward the media by 10 seconds
     mediaAPI.actions.Forward(10)
 
+    // Tear the player down: stops hls.js fetching segments, releases the buffer and
+    // removes the media from the Vis library. The component already calls this when it
+    // unmounts, so you only need it when you build a player outside of <Vis3 />.
+    mediaAPI.actions.Destroy()
+
     // Example: Set DRM text with various options
     const drmOptions = {
         "text": [
