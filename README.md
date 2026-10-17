@@ -1,34 +1,84 @@
 # vis3-vue
 Kavimo Vis3 Vue Component
 
+Works with **Vue 2.6, Vue 2.7 and Vue 3**.
+
 
 # Installation:
 ```
 npm i @kavimo-tehran/vis3-vue
 ```
+`vue` is a peer dependency: the component runs on the Vue your app already has.
 
 
-# Use in Vue App:
-```
+# Use in Vue 3 (or Vue 2.7) — `<script setup>`:
+```vue
 <script setup>
-import Vis3 from '@kavimo-tehran/vis3-vue';
+import Vis3 from '@kavimo-tehran/vis3-vue'
 
-const handleLoad = ( media ) => {
-    console.log('Vis: Media Loaded');
-    console.log( media )
+const handleLoad = (media) => {
+    console.log('Vis: Media Loaded')
+    console.log(media)
 }
 </script>
 
 <template>
   <main>
-    <Vis3 :onLoad=handleLoad domainName="stream.domain.com" ID="xxxxxxxxxxxx" />
+    <Vis3 :onLoad="handleLoad" domainName="stream.domain.com" ID="xxxxxxxxxxxx" />
   </main>
 </template>
-
 ```
 
 
-# Handler Mehtod:
+# Use in Vue 2 — Options API:
+```vue
+<template>
+  <main>
+    <Vis3 :onLoad="handleLoad" domainName="stream.domain.com" ID="xxxxxxxxxxxx" />
+  </main>
+</template>
+
+<script>
+import Vis3 from '@kavimo-tehran/vis3-vue'
+
+export default {
+  components: { Vis3 },
+  methods: {
+    handleLoad(media) {
+      console.log('Vis: Media Loaded')
+      console.log(media)
+    }
+  }
+}
+</script>
+```
+
+
+# Props:
+| Prop         | Type     | Description                                                      |
+| ------------ | -------- | ---------------------------------------------------------------- |
+| `domainName` | String   | Your stream domain, e.g. `stream.domain.com`                     |
+| `ID`         | String   | The media ID                                                     |
+| `onLoad`     | Function | Called once the player is ready, with `media` (see below)        |
+
+The props are read when the component mounts. To show another media in the same place,
+give the component a `key` so it remounts with the new `ID`:
+```vue
+<Vis3 :key="mediaID" :ID="mediaID" :onLoad="handleLoad" domainName="stream.domain.com" />
+```
+
+
+# Lifecycle:
+- **Unmount** — the player is destroyed (`beforeDestroy` in Vue 2, `beforeUnmount` in Vue 3):
+  segment downloads stop and the media is removed from the Vis library. No need to call
+  `Destroy()` yourself.
+- **`<keep-alive>` / `<KeepAlive>`** — a cached component is not unmounted, so the player is
+  kept. While it is off the page it downloads nothing, and it carries on when it comes back.
+- **SSR (e.g. Nuxt)** — the server renders an empty container; the player is built in the
+  browser after mount, so hydration matches.
+
+
+# Handler Method:
 ```
 /**
  * handleLoad - Function to handle the loading of media.

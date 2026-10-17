@@ -23,11 +23,12 @@
     "url": "https://github.com/kavimo-tehran/vis3-vue/issues"
   },
   "homepage": "https://github.com/kavimo-tehran/vis3-vue#readme",
-  "dependencies": {
-    "vue": "^2.7.16"
+  "peerDependencies": {
+    "vue": "^2.6.0 || ^3.0.0"
   },
   "devDependencies": {
     "@vue/cli-service": "^4.5.19",
+    "vue": "^2.7.16",
     "vue-template-compiler": "^2.6.12"
   }
 }
