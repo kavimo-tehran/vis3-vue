@@ -1,40 +1,65 @@
-# vis3-vue
-Kavimo Vis3 Vue Component
+# Vis3 for Vue
 
-Works with **Vue 2.6, Vue 2.7 and Vue 3**.
+Put the Kavimo Vis3 video player in a Vue app with a single component.
+
+- Vue 2.6, Vue 2.7 and Vue 3
+- Safe with server-side rendering (e.g. Nuxt)
+- Cleans up after itself: when the component unmounts, the player stops downloading and is removed
 
 
-# Installation:
+## Installation
+
+```bash
+npm install @kavimo-tehran/vis3-vue
 ```
-npm i @kavimo-tehran/vis3-vue
+
+`vue` is a peer dependency: the component uses the Vue your app already has.
+
+
+## Quick start
+
+```vue
+<script setup>
+import Vis3 from '@kavimo-tehran/vis3-vue'
+</script>
+
+<template>
+  <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" />
+</template>
 ```
-`vue` is a peer dependency: the component runs on the Vue your app already has.
+
+- `domainName` is your Kavimo stream domain, without `https://`
+- `ID` is the ID of the video
 
 
-# Use in Vue 3 (or Vue 2.7) — `<script setup>`:
+## Examples
+
+### Vue 3 (or Vue 2.7): `<script setup>`
+
 ```vue
 <script setup>
 import Vis3 from '@kavimo-tehran/vis3-vue'
 
 const handleLoad = (media) => {
-    console.log('Vis: Media Loaded')
-    console.log(media)
+  console.log('Player is ready', media.api.get.Title())
 }
 </script>
 
 <template>
   <main>
-    <Vis3 :onLoad="handleLoad" domainName="stream.domain.com" ID="xxxxxxxxxxxx" />
+    <h1>My course</h1>
+    <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" :onLoad="handleLoad" />
   </main>
 </template>
 ```
 
+### Vue 2: Options API
 
-# Use in Vue 2 — Options API:
 ```vue
 <template>
   <main>
-    <Vis3 :onLoad="handleLoad" domainName="stream.domain.com" ID="xxxxxxxxxxxx" />
+    <h1>My course</h1>
+    <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" :onLoad="handleLoad" />
   </main>
 </template>
 
@@ -45,141 +70,179 @@ export default {
   components: { Vis3 },
   methods: {
     handleLoad(media) {
-      console.log('Vis: Media Loaded')
-      console.log(media)
+      console.log('Player is ready', media.api.get.Title())
     }
   }
 }
 </script>
 ```
 
+### Control the player with your own buttons
 
-# Props:
-| Prop         | Type     | Description                                                      |
-| ------------ | -------- | ---------------------------------------------------------------- |
-| `domainName` | String   | Your stream domain, e.g. `stream.domain.com`                     |
-| `ID`         | String   | The media ID                                                     |
-| `onLoad`     | Function | Called once the player is ready, with `media` (see below)        |
+Keep `media.api` from `onLoad`, then call it whenever you need:
 
-The props are read when the component mounts. To show another media in the same place,
-give the component a `key` so it remounts with the new `ID`:
 ```vue
-<Vis3 :key="mediaID" :ID="mediaID" :onLoad="handleLoad" domainName="stream.domain.com" />
+<script setup>
+import Vis3 from '@kavimo-tehran/vis3-vue'
+
+let player = null
+const handleLoad = (media) => { player = media.api }
+</script>
+
+<template>
+  <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" :onLoad="handleLoad" />
+
+  <button @click="player?.actions.Play()">Play</button>
+  <button @click="player?.actions.Pause()">Pause</button>
+  <button @click="player?.actions.Seek(60)">Jump to 1:00</button>
+</template>
 ```
 
+### Listen to playback events
 
-# Lifecycle:
-- **Unmount** — the player is destroyed (`beforeDestroy` in Vue 2, `beforeUnmount` in Vue 3):
-  segment downloads stop and the media is removed from the Vis library. No need to call
-  `Destroy()` yourself.
-- **`<keep-alive>` / `<KeepAlive>`** — a cached component is not unmounted, so the player is
-  kept. While it is off the page it downloads nothing, and it carries on when it comes back.
-- **SSR (e.g. Nuxt)** — the server renders an empty container; the player is built in the
-  browser after mount, so hydration matches.
-
-
-# Handler Method:
-```
-/**
- * handleLoad - Function to handle the loading of media.
- * @param {Object} media - The media object containing media API and details.
- */
+```js
 const handleLoad = (media) => {
-    console.log('Vis: Media Loaded')
-    console.log(media)
+  const api = media.api
 
-    const mediaAPI = media.api
+  api.events.OnPlay(() => console.log('Playing'))
+  api.events.OnPause(() => console.log('Paused'))
+  api.events.OnEnded(() => console.log('Finished'))
 
-    // Get Data Methods
-    // Fetch and log various media properties
-
-    // Get media ID
-    const mediaID = mediaAPI.get.ID()
-    console.log(`Media ID: ${mediaID}`)
-
-    // Get current playback time
-    const currentTime = mediaAPI.get.CurrentTime()
-    console.log(`Current Time: ${currentTime}`)
-
-    // Get media duration
-    const duration = mediaAPI.get.Duration()
-    console.log(`Duration: ${duration}`)
-
-    // Get media title
-    const title = mediaAPI.get.Title()
-    console.log(`Title: ${title}`)
-
-    // Actions Methods
-    // Control the media playback with available actions
-
-    // Play the media
-    mediaAPI.actions.Play()
-
-    // Pause the media
-    mediaAPI.actions.Pause()
-
-    // Seek to a specific time (e.g., 120 seconds)
-    mediaAPI.actions.Seek(120)
-
-    // Rewind the media by 5 seconds (default)
-    mediaAPI.actions.Rewind()
-
-    // Forward the media by 10 seconds
-    mediaAPI.actions.Forward(10)
-
-    // Tear the player down: stops hls.js fetching segments, releases the buffer and
-    // removes the media from the Vis library. The component already calls this when it
-    // unmounts, so you only need it when you build a player outside of <Vis3 />.
-    mediaAPI.actions.Destroy()
-
-    // Example: Set DRM text with various options
-    const drmOptions = {
-        "text": [
-            "info@kavimo.com",
-            "00123456789",
-            "more text"
-        ],
-        "time": "2.5",       // Seconds (optional)
-        "color": "#FFFFFF",  // Text color (optional)
-        "fontSize": "13px",  // Font size (% or px) (optional)
-        "fontStyle": "bold", // Font style (italic, bold, normal) (optional)
-        "fontName": "arial", // Font name (custom fonts can be used) (optional)
-        "opacity": "0.4"     // Text opacity (optional)
-    }
-    mediaAPI.DRMText(drmOptions)
-
-    // Events Methods
-    // Add event listeners for media events
-
-    // Example: Add event listeners directly
-    mediaAPI.events.OnPlay(() => {
-        console.log('Media is playing')
-    })
-    mediaAPI.events.OnEnded(() => {
-        console.log('Media has ended')
-    })
-
-    // Define event handlers for reuse
-    const handlePlay = () => {
-        console.log('Media is playing')
-    }
-    const handleEnded = () => {
-        console.log('Media has ended')
-    }
-
-    // Add event listeners using predefined handlers
-    mediaAPI.events.OnPlay(handlePlay)
-    mediaAPI.events.OnEnded(handleEnded)
-
-    // Add event listener for pause event
-    mediaAPI.events.OnPause(() => {
-        console.log('Media is paused')
-    })
-
-    // Add event listener for time update events
-    mediaAPI.events.OnTimeupdate((time) => {
-        console.log(`Current time: ${time}`)
-    })
+  api.events.OnTimeupdate(() => {
+    console.log('Now at second', api.get.CurrentTime())
+  })
 }
-
 ```
+
+### Save the viewer's progress
+
+```js
+const handleLoad = (media) => {
+  const api = media.api
+
+  api.events.OnEnded(() => {
+    fetch('/api/progress', {
+      method: 'POST',
+      body: JSON.stringify({ video: api.get.ID(), done: true }),
+    })
+  })
+}
+```
+
+### Show another video
+
+The props are read when the component mounts. Give it a `key`, so it rebuilds when the video changes:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import Vis3 from '@kavimo-tehran/vis3-vue'
+
+const videoID = ref('xxxxxxxxxxxx')
+</script>
+
+<template>
+  <Vis3 :key="videoID" :ID="videoID" domainName="stream.domain.com" />
+  <button @click="videoID = 'yyyyyyyyyyyy'">Next lesson</button>
+</template>
+```
+
+### Watermark (DRM text)
+
+Show the viewer's details over the video, so a screen recording can be traced back:
+
+```js
+const handleLoad = (media) => {
+  media.api.DRMText({
+    text: ['user@example.com', '09123456789'],
+    time: '2.5',        // seconds between moves (optional)
+    color: '#FFFFFF',   // (optional)
+    fontSize: '13px',   // px or % (optional)
+    fontStyle: 'bold',  // normal, bold or italic (optional)
+    fontName: 'arial',  // (optional)
+    opacity: '0.4',     // (optional)
+  })
+}
+```
+
+
+## Props
+
+| Prop         | Type     | Required | Description                                              |
+| ------------ | -------- | -------- | -------------------------------------------------------- |
+| `domainName` | String   | Yes      | Your stream domain, e.g. `stream.domain.com`             |
+| `ID`         | String   | Yes      | The video ID                                             |
+| `onLoad`     | Function | No       | Called once the player is ready, with the `media` object |
+
+
+## The `media` object
+
+`onLoad` receives `media`. Everything you can do with the player is on `media.api`.
+
+### `api.get`: read information
+
+| Method              | Returns                      |
+| ------------------- | ---------------------------- |
+| `get.ID()`          | The video ID                 |
+| `get.Title()`       | The video title              |
+| `get.Duration()`    | Length, in seconds           |
+| `get.CurrentTime()` | Current position, in seconds |
+
+### `api.is`: check the state
+
+| Method            | Returns                    |
+| ----------------- | -------------------------- |
+| `is.Play()`       | `true` while playing       |
+| `is.Pause()`      | `true` while paused        |
+| `is.Mute()`       | `true` while muted         |
+| `is.Fullscreen()` | `true` while in fullscreen |
+
+### `api.actions`: control playback
+
+| Method                     | Does                                           |
+| -------------------------- | ---------------------------------------------- |
+| `actions.Play()`           | Plays                                          |
+| `actions.Pause()`          | Pauses                                         |
+| `actions.Seek(seconds)`    | Jumps to a position                            |
+| `actions.Forward(seconds)` | Goes forward (5 seconds if you leave it out)   |
+| `actions.Rewind(seconds)`  | Goes back (5 seconds if you leave it out)      |
+| `actions.Destroy()`        | Removes the player and stops all its downloads |
+
+You don't need `Destroy()` with `<Vis3 />`: unmounting the component already does it.
+
+### `api.events`: listen to playback
+
+| Method                    | Your function runs when…                       |
+| ------------------------- | ---------------------------------------------- |
+| `events.OnPlay(fn)`       | Playback starts or resumes                     |
+| `events.OnPause(fn)`      | Playback pauses                                |
+| `events.OnEnded(fn)`      | The video reaches the end                      |
+| `events.OnTimeupdate(fn)` | The position changes; read `get.CurrentTime()` |
+
+### `api.DRMText(options)`: watermark
+
+| Option      | Example                | Description                      |
+| ----------- | ---------------------- | -------------------------------- |
+| `text`      | `['user@example.com']` | Lines of text to show (required) |
+| `time`      | `'2.5'`                | Seconds between moves            |
+| `color`     | `'#FFFFFF'`            | Text color                       |
+| `fontSize`  | `'13px'`               | Size in px or %                  |
+| `fontStyle` | `'bold'`               | `normal`, `bold` or `italic`     |
+| `fontName`  | `'arial'`              | Font family                      |
+| `opacity`   | `'0.4'`                | From `0` to `1`                  |
+
+
+## Good to know
+
+- **Unmounting** removes the player (`beforeDestroy` in Vue 2, `beforeUnmount` in Vue 3): it stops downloading and leaves nothing behind. No cleanup code is needed.
+- **`<keep-alive>` / `<KeepAlive>`**: a cached component is not unmounted, so the player is kept. While it is off the page it downloads nothing, and it carries on when it comes back.
+- **Server-side rendering (e.g. Nuxt)**: the server renders an empty `<div>`, and the player is built in the browser.
+
+
+## Troubleshooting
+
+| Problem                          | Fix                                                                 |
+| -------------------------------- | ------------------------------------------------------------------- |
+| Nothing shows up                 | Check `domainName` (no `https://`, no trailing `/`) and `ID`        |
+| Changing `ID` shows the old video | Add `:key="ID"` so the component rebuilds (see *Show another video*) |
+| `onLoad` is never called         | Pass a function: `:onLoad="handleLoad"`, not `onLoad="handleLoad"`  |
